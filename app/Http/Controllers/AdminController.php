@@ -87,6 +87,20 @@ class AdminController extends Controller
         ));
     }
 
+    public function showProducts()
+{
+    $fullname = auth()->user()->name;
+    $products = Product::join('categories', 'products.Category_id', '=', 'categories.Category_id')
+                        ->select('products.*', 'categories.Category_name')
+                        ->get();
+    $categories = Category::all();
+    $ingredients = Ingredient::all();
+    $suppliers = Supplier::all();
+
+    return view('AdminDashboard.Products', compact('fullname', 'products', 'categories', 'ingredients', 'suppliers'));
+}
+
+
     public function logout() {
         // Clear admin session
         Session::forget('admin_logged_in');
