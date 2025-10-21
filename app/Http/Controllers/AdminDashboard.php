@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\AdminController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\DB;
@@ -39,15 +38,17 @@ class AdminController extends Controller
             return redirect()->route('admin.login');
         }
 
-
         // Total Orders
         $totalOrders = DB::table('order')->count();
 
         // Total Income
         $totalIncome = DB::table('order')->sum('TotalAmount') ?? 0;
 
-        // Total Customers
-        $totalCustomers = DB::table('order')->distinct('Customer_id')->count('Customer_id');
+        // Total Customers - Count Distinct Customer IDs
+        $totalCustomers = DB::table('order')
+            ->whereNotNull('Customer_id')
+            ->selectRaw('COUNT(DISTINCT Customer_id) as total')
+            ->value('total');
 
         // Top 5 Best-Selling Products
         $topProducts = DB::table('orderitem as oi')
@@ -72,6 +73,15 @@ class AdminController extends Controller
         foreach ($weekDays as $day) {
             $chartSales[$day] = isset($salesData[$day]) ? (float)$salesData[$day] : 0;
         }
+
+        // Debug - Check if variables are set
+        \Log::info('Dashboard Data:', [
+            'totalOrders' => $totalOrders,
+            'totalIncome' => $totalIncome,
+            'totalCustomers' => $totalCustomers,
+            'topProducts' => $topProducts->count(),
+            'chartSales' => count($chartSales)
+        ]);
 
         return view('Admin.DashboardAdmin', compact(
             'totalOrders',
